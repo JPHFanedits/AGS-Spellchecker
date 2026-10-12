@@ -1,0 +1,43 @@
+AGS Spellchecker — editor plugin test release
+
+INSTALL
+1. Close AGS.
+2. Copy AGS.Plugin.Spellchecker.dll into the AGS installation folder, beside AGSEditor.exe. Windows may request administrator permission.
+   Example: C:\Program Files (x86)\Adventure Game Studio 3.6.1
+3. Restart AGS and open a COPY of your game for this test release.
+4. Open Spellchecker > Open AGS Spellchecker, or the AGS Spellchecker project-tree entry.
+5. Click Scan game.
+
+This is an EDITOR plugin. AGS discovers it automatically; do not enable it as a runtime plugin in the game's Plugins list. Do not rename the DLL. No companion DLLs, online account, API key or server are required. Uses Windows offline English spellchecking and built-in grammar/punctuation rules.
+
+REVIEW
+Only lines with potential issues appear. Choose a type to review one category, search the list, and click column headings to sort. Hover over buttons for help.
+Select a line and inspect the context. Go to source opens the script/dialogue line or the relevant object/property in AGS. Use suggestion updates the editable draft; Apply & next commits it. You can also type your own correction.
+Ignore & next remembers the exact text throughout that game. Add word & next remembers a spelling exception. Both persist across sessions. History / settings provides dictionary and ignored-line management.
+
+SAVING AND BACKUPS
+Apply saves through AGS without a confirmation prompt. This saves the entire current project, INCLUDING OTHER PENDING AGS EDITS.
+Original text and available original source files are backed up under:
+  <game folder>\.ags-proofreader\AGS Spellchecker\
+Undo last edit restores the latest plugin correction and saves again. Undo refuses to overwrite newer changes in the same script/document. Keep the backup folder with your game. Existing standalone-app ignored lines and dictionary words are imported on first use; its old undo history is not imported.
+
+COVERAGE
+Reads current AGS script/dialogue buffers, dialogue options, GUI text properties, character display names, inventory descriptions, game title, global messages, and room hotspot/object names and messages. Known player-facing script calls and Text/Name assignments are checked. Internal identifiers, comments and arbitrary string literals are excluded.
+Custom display-wrapper functions, text assembled through variables, custom properties and translation files are not covered by this preview. Unloaded room metadata supports room formats 31–33; skipped sources appear in History / settings.
+English grammar checks are heuristic suggestions for common agreement errors, repeated words, apostrophes, capitalization, spacing and punctuation. They are not a complete grammar analysis. Dialogue style and fragments may produce suggestions you should ignore.
+
+COMPATIBILITY / VERIFICATION
+Built against AGS 3.6.1's editor SDK and Windows .NET Framework. Requires AGS 3.6.1 or newer; later versions have not been verified. Some live-buffer and save integration uses AGS editor implementation APIs, which may change between versions.
+Verified: compilation, plugin assembly loading, native review-panel construction and layout initialization.
+NOT YET VERIFIED: complete scan/edit/save/undo/source-navigation workflow inside a loaded AGS game. An isolated editor test loaded the test driver but did not open its game, so it did not establish these behaviors. Treat this as a test release and use a copy of your project first.
+
+UNINSTALL
+Close AGS and remove AGS.Plugin.Spellchecker.dll from its installation folder. Game backups and dictionary/ignore settings remain in the game folder.
+
+SOURCE / BUILD
+Source is included. From PowerShell:
+  .\Source\build.ps1 -AgsPath 'C:\Program Files (x86)\Adventure Game Studio 3.6.1' -OutputPath .
+Uses the .NET Framework C# compiler included with Windows. No network dependency or online checking code is included.
+
+Official editor-plugin installation reference:
+https://adventuregamestudio.github.io/ags-manual/v3/EditorPlugins.html
