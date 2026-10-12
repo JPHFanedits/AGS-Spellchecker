@@ -5,7 +5,7 @@ using System.Xml;
 using AGS.Types;
 
 namespace AGSSpellchecker {
-[RequiredAGSVersion("3.6.1.0")]
+[RequiredAGSVersion("3.6.0.47")]
 public sealed class Plugin : IAGSEditorPlugin {
  readonly SpellcheckerComponent component;
  public Plugin(IAGSEditor editor){component=new SpellcheckerComponent(editor);editor.AddComponent(component);}
@@ -26,4 +26,5 @@ public sealed class SpellcheckerComponent : IEditorComponent {
  public void EditorShutdown(){if(disposed)return;disposed=true;if(document!=null){editor.GUIController.RemovePaneIfExists(document);document.Dispose();}if(menu!=null)editor.GUIController.RemoveMenuItems(menu);icon.Dispose();}
 }
 }
+
 

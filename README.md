@@ -12,7 +12,7 @@ An **offline Adventure Game Studio editor plugin** for reviewing player-facing t
 
 This is an editor extension, not a runtime plugin. AGS discovers it automatically. Windows may require administrator permission to copy files into Program Files.
 
-**Test release:** start with a copy of your game. Built against AGS 3.6.1 on Windows/.NET Framework. Compilation, assembly loading, icon resource loading and review-panel initialization were verified. The complete scan/edit/save/undo workflow has not yet been verified inside a loaded AGS game. Newer AGS versions are not verified.
+**Test release:** start with a copy of your game. Targets stable AGS **3.6.0, 3.6.1 and 3.6.2**, starting with 3.6.0.47, on Windows/.NET Framework. The same DLL passed API, assembly, icon and panel checks on 3.6.0.47, 3.6.1.32 and 3.6.2.21. Complete live scan/edit/save/undo remains unverified. See [compatibility details](docs/COMPATIBILITY.md).
 
 ## Features
 
@@ -31,11 +31,11 @@ See [the user guide](docs/USER-GUIDE.txt) for coverage, limitations, backups and
 
 ## Build
 
-Requires Windows, .NET Framework's C# compiler, and an installed AGS 3.6.1 editor SDK (`AGS.Types.dll`). From the repository root:
+Requires Windows, .NET Framework's C# compiler, and the original AGS 3.6.0.47 editor SDK (`AGS.Types.dll`). From the repository root:
 
 ```powershell
 New-Item -ItemType Directory -Force dist | Out-Null
-.\Source\build.ps1 -AgsPath 'C:\Program Files (x86)\Adventure Game Studio 3.6.1' -OutputPath "$PWD\dist"
+.\Source\build.ps1 -AgsPath 'C:\Tools\AGS-3.6.0.47' -OutputPath "$PWD\dist"
 ```
 
 The compiler embeds `Source/Assets/spellchecker.ico`. The editable SVG and a standalone C# icon-generation utility are included. The icon deliberately omits lettering at the smallest sizes to keep the mug and checkmark readable. AGS SDK assemblies are referenced locally and are not redistributed.
@@ -54,3 +54,4 @@ The source package contains no game files, game text, review history, local back
 Adventure Game Studio and Microsoft Word are referenced descriptively. This is an independent plugin, not an official release from either project. The mug/checkmark artwork was drawn for this plugin and does not embed their application assets.
 
 [Official AGS editor-plugin documentation](https://adventuregamestudio.github.io/ags-manual/v3/EditorPlugins.html)
+
