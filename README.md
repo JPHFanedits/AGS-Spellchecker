@@ -1,57 +1,79 @@
-# AGS Spellchecker
+# AGS Spellchecker — offline LanguageTool edition
 
-![AGS Spellchecker blue mug and checkmark](assets/spellchecker.png)
+![Blue mug spellcheck icon](assets/spellchecker.png)
 
-An **offline Adventure Game Studio editor plugin** for reviewing player-facing text in the currently open game.
+An editor plugin for **stable AGS 3.6.0, 3.6.1 and 3.6.2** (minimum 3.6.0.47). Reviews player-facing text in the currently opened game using a bundled, fully local LanguageTool engine.
+
+Created with assistance from **OpenAI Codex**.
 
 ## Install
 
-1. Download and extract the plugin ZIP from this repository's Releases page.
-2. Close AGS and copy `AGS.Plugin.Spellchecker.dll` beside `AGSEditor.exe`.
-3. Restart AGS, open your game, and select **Spellchecker > Open AGS Spellchecker**.
+Download **AGS-Spellchecker-Setup.exe** from Releases. Close AGS, run Setup, select your AGS installation(s), and restart AGS. Open **AGS Spellchecker** in the project tree, choose **Check language** at the top of the plugin, and press **Scan**.
 
-This is an editor extension, not a runtime plugin. AGS discovers it automatically. Windows may require administrator permission to copy files into Program Files.
+The installer includes a private Java runtime. No account, subscription, separate Java installation or Internet access for checking is required. Checking runs on localhost only. Windows 10/11 x64 is required for the bundled runtime; the AGS editor can be 32-bit.
 
-**Test release:** start with a copy of your game. Targets stable AGS **3.6.0, 3.6.1 and 3.6.2**, starting with 3.6.0.47, on Windows/.NET Framework. The same DLL passed API, assembly, icon and panel checks on 3.6.0.47, 3.6.1.32 and 3.6.2.21. Complete live scan/edit/save/undo remains unverified. See [compatibility details](docs/COMPATIBILITY.md).
+For manual installation, extract **AGS-Spellchecker-Portable.zip**, then copy its `AGS.Plugin.Spellchecker.dll` and the entire `Runtime` folder beside `AGSEditor.exe`. Do not copy only the DLL. The DLL-only download from the previous edition is no longer sufficient.
 
-## Features
+## Review workflow
 
-- Offline English spelling plus rules for common grammar, capitalization and punctuation issues.
-- Review flagged lines, filter by category, search and sort columns.
-- Inspect source context and jump to a script/dialogue line or AGS property.
-- Preview suggestions before applying a correction.
-- Automatically advance after applying, ignoring or adding a dictionary word.
-- Persist ignored text and dictionary words per game.
-- Automatic backups, project saving and guarded undo.
-- Blue mug spellcheck icon embedded in the plugin DLL.
+Rows remain visible throughout review: **red = not checked**, **green = checked**, and **blue = ignored**. Search, filter by category, or sort columns. Original text and current text appear side by side. The issues, suggested fixes and highlighted sentence preview start with equal space and can be resized. Review buttons remain directly beneath them.
 
-**Applying a correction saves the entire AGS project, including other pending edits.** Backups and review state are stored in `<game>/.ags-proofreader/AGS Spellchecker/`. Undo refuses to overwrite subsequent changes to the same document.
+**Use suggestion** saves the selected suggestion and advances immediately. For manual edits, choose **Apply & next**. **Ignore** accepts only the selected issue. A line remains unchecked until every issue is corrected or ignored. **Revert selected** restores that line's original text while preserving corrections to other lines. **Go to source** opens the native script/dialogue editor or relevant object property.
 
-See [the user guide](docs/USER-GUIDE.txt) for coverage, limitations, backups and uninstall instructions. Grammar rules are suggestions, not a complete linguistic analysis. Custom display wrappers, dynamically assembled strings, custom properties and translation files are not covered in this preview. No online checking, account or API key is used.
+A full scan starts only when you press **Scan**. Individual issue results and ignores are remembered for this game and reused while text and dictionary settings are unchanged. Unchanged results are also reused during the current session. Editing a draft checks only that line.
 
-## Build
+The game dictionary accepts **words and phrases** you explicitly add. It suppresses notices within those entries, including informal-word style notices such as “gonna” and “wanna”; neither word is accepted by default. Select draft text or an issue, then choose **Add to dictionary**, or edit the dictionary under History / settings. Matching respects word boundaries and ignores case; unrelated sentence issues remain checked.
 
-Requires Windows, .NET Framework's C# compiler, and the original AGS 3.6.0.47 editor SDK (`AGS.Types.dll`). From the repository root:
+**In game mode, Apply and Revert save the entire AGS project, including other pending edits.** Originals are backed up under `<game>/.ags-proofreader/AGS Spellchecker`. Revert stops if the document has newer changes since the scan. Ignored text, dictionary entries and corrected-line originals persist across sessions.
+Checks use LanguageTool's spelling, grammar, capitalization, punctuation and style rules. The language menu provides 59 language/variant choices; coverage varies. This does not include cloud-only AI checks. Informal dialogue and fragments may intentionally trigger rules.
+
+## Language assignment and bulk actions
+
+Choose **Check language**, then **Scan**. Automatic language detection has been removed: unassigned lines always remain visible. Ctrl-click or Shift-click to select multiple rows. Choose a language in **Set language**, then **Assign selected** to label all selected rows. They appear only in that language family; dialect choices still control the checking rules. Choose **Unassigned (all languages)** to remove labels. Assignments are saved and carried through corrections.
+
+**Ignore selected** accepts all issues on the selected lines, including on subsequent scans and in other checking languages. The ordinary **Ignore** button still accepts only the selected issue. **Only unchecked / unresolved** hides completed and ignored rows. History / settings can reset ignores.
+
+Changing **Check language** displays cached results without starting a scan. **Needs scan** means that line needs an explicit scan in the selected language. Saved checking results and individual issue ignores remain separate for each checking language.
+
+## Project translations
+
+Add translations through AGS's Explore Project tree. Spellchecker lists those registered `.trs` sources in **Show text in**. Select **Translations** for all registered translations, or **Translation: filename.trs** for one file. Choose **Check language**, then press **Scan**. Select **All player-facing text** to return to game text. No separate file picker or game-mode button is needed. Scan checks the chosen category; changing the dropdown never starts a scan.
+
+Only nonblank translated entries are checked. Original entries, comments, blank translations, line endings and encoding are preserved. Corrections back up and save the translation source, then refresh AGS's translation data. Save any pending AGS translation edits before scanning or applying corrections. **Revert selected** restores the original translation. **Go to source** opens the file in Notepad; the plugin shows surrounding lines. Recompile translations in AGS to include corrections in the game.
+
+## Adjustable workspace
+
+Drag the divider between the result list and review area, between the left and right columns, or between individual review panels. The correction buttons stay in a fixed row at the bottom right. The panels start with balanced proportions; resizing the plugin preserves the proportions chosen by dragging.
+
+Selecting a suggested fix shows the full corrected line with the replacement highlighted in yellow. Deletions are labeled explicitly. Previewing alone does not modify the draft or game.
+## Coverage and limits
+
+Checks known player-facing script calls, dialogue speech/options, GUI text, character/inventory display names, game title, global messages and supported room names/messages. Custom display wrappers, text assembled from variables, arbitrary custom properties are not automatically covered; registered translations are available through Show text in. AGS formatting placeholders are protected.
+
+This is version 1.2.1. See `docs/COMPATIBILITY.md` and the release notes for actual validation. The helper may use up to approximately 2 GB of Java heap; allow additional system memory for AGS and other applications. The installer and engine are unsigned.
+
+## Source and builds
+
+Windows/.NET Framework and the original AGS 3.6.0.47 SDK are required. Build the plugin with:
 
 ```powershell
-New-Item -ItemType Directory -Force dist | Out-Null
-.\Source\build.ps1 -AgsPath 'C:\Tools\AGS-3.6.0.47' -OutputPath "$PWD\dist"
+.\Source\build.ps1 -AgsPath 'C:\Tools\AGS-3.6.0.47' -OutputPath '.\dist'
 ```
 
-The compiler embeds `Source/Assets/spellchecker.ico`. The editable SVG and a standalone C# icon-generation utility are included. The icon deliberately omits lettering at the smallest sizes to keep the mug and checkmark readable. AGS SDK assemblies are referenced locally and are not redistributed.
+Build the complete offline distribution with Inno Setup 6 installed:
 
-## Publish this package on GitHub
+```powershell
+.\Build-Offline.ps1 -AgsPath 'C:\Tools\AGS-3.6.0.47'
+```
 
-1. Extract the source ZIP and upload the **contents** of the `AGS-Spellchecker` directory to your repository, or commit and push those files with Git.
-2. Create a release marked **Pre-release** and attach `AGS-Spellchecker-plugin.zip` from the separate release package.
-3. Copy the text from `RELEASE-NOTES.md` into the release description.
-4. Choose a license before inviting reuse or contributions; this package does not select a license on the author's behalf.
+The full build downloads pinned dependencies and verifies their SHA-256 hashes. It uses a new artifact staging directory; it does not create or open an AGS game. Runtime archives belong in GitHub Releases, not Git source history.
 
-The source package contains no game files, game text, review history, local backups, AGS SDK binaries or testing copies.
+`Tests/Compatibility.cs` checks the same DLL against each supplied editor SDK. `Tests/EngineTests.cs` checks real local English, French, German and Spanish results, dictionary exceptions and placeholder offsets. Engine tests require the DLL beside its Runtime folder.
 
-## Attribution
+## Third-party notices
 
-Adventure Game Studio and Microsoft Word are referenced descriptively. This is an independent plugin, not an official release from either project. The mug/checkmark artwork was drawn for this plugin and does not embed their application assets.
+See `Packaging/THIRD-PARTY-NOTICES.txt` and the unchanged license/notice files inside the runtime distribution. AGS SDK files and game files are not redistributed. This is an independent plugin, not an official AGS, LanguageTool or Microsoft release. No license for the plugin's own source has been selected on the author's behalf.
 
-[Official AGS editor-plugin documentation](https://adventuregamestudio.github.io/ags-manual/v3/EditorPlugins.html)
+
+
 

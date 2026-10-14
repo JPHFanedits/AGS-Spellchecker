@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,12 +10,12 @@ using AGSProof;
 
 namespace AGSSpellchecker {
 public sealed class TextTarget {
- public string Key,Caption,File,Category,Snapshot; public Func<string> Read;public Action<string> Write;public Action<int> Navigate;public bool Script,Dialog,Prose;
+ public string Key,Caption,File,Category,Snapshot; public Func<string> Read;public Action<string> Write;public Action<int> Navigate;public bool Script,Dialog,Prose,Translation;
 }
 public sealed class LineItem {
  public TextTarget Target;public Entry Entry;public List<Issue> Issues=new List<Issue>();public bool Checked,Ignored;
- public string Category {get{return Entry.Category;}} public string Source {get{return Target.Caption+" · "+Entry.Location;}}
- public string Text {get{return Entry.Text;}}public int Count {get{return Issues.Count;}}
+ public string AssignedLanguage;public LanguageDetection Detection;public bool Deferred;public string Original;public bool Reviewed;public int Ordinal; public bool Pending {get{return !Deferred&&!Ignored&&!Reviewed;}} public string Status {get{return Deferred?"Other language":!Checked?"Needs scan":Ignored?"Ignored":Reviewed?"Checked":"Not checked";}} public string Category {get{return Entry.Category;}} public string Source {get{return Target.Caption+" · "+Entry.Location;}}
+ public string Text {get{return Entry.Text;}}public int Count {get{return Issues.Count(x=>!x.Ignored);}}
  public string Result {get{return Ignored?"Ignored":Checked?(Issues.Count==0?"Clear":Issues.Count+" issues"):"Not checked";}}
  public string Identity {get{return Target.Key+"|"+Entry.Start;}}
 }
@@ -51,7 +51,24 @@ public class EditorBridge {
  }
  object RoomObject(int number,string kind,int id,bool load){var r=Editor.RoomController.CurrentRoom;if(r==null||r.Number!=number){if(!load)return null;var info=Game.Rooms.FirstOrDefault(x=>x.Number==number);if(info==null||!Editor.RoomController.LoadRoom(info))throw new IOException("Could not load room "+number+"; the operation was stopped.");r=Editor.RoomController.CurrentRoom;}if(kind=="hotspot")return r.Hotspots.FirstOrDefault(x=>x.ID==id);if(kind=="object")return r.Objects.FirstOrDefault(x=>x.ID==id);return r.Messages.FirstOrDefault(x=>x.ID==id);}
  TextTarget RoomTarget(int number,string kind,int id){string property=kind=="message"?"Text":"Description";var t=new TextTarget{Key="roomprop:"+number+":"+kind+":"+id,Caption="Room "+number+" / "+kind+" "+id,File="room"+number+".crm",Category="Room names / messages",Prose=kind=="message"};t.Read=()=>{object obj=RoomObject(number,kind,id,true);if(obj==null)throw new IOException("Room item no longer exists. Rescan the project.");return (string)Get(obj,property)??"";};t.Write=v=>{object obj=RoomObject(number,kind,id,true);if(obj==null)throw new IOException("Room item no longer exists.");obj.GetType().GetProperty(property).SetValue(obj,v,null);Editor.RoomController.CurrentRoom.Modified=true;Editor.GUIController.RefreshPropertyGrid();};t.Navigate=line=>{object obj=RoomObject(number,kind,id,true);OpenObject("Rooms","Roe"+number,obj,property);};return t;}
- public List<LineItem> Extract(){Warnings.Clear();var result=new List<LineItem>();foreach(var target in Targets(true)){try{string text=target.Snapshot??target.Read();target.Snapshot=text;if(target.Script){var source=new Source(Path.Combine(Root,target.File),text);var p=new Project{Root=Root};p.ExtractScript(source,text,0,target.Dialog);foreach(var entry in p.Entries)result.Add(new LineItem{Target=target,Entry=entry});}else if(Regex.IsMatch(text,@"\p{L}")){result.Add(new LineItem{Target=target,Entry=new Entry{Text=text,File=target.File,Category=target.Category,Location="property",Kind="property",Start=0,Length=text.Length,Prose=target.Prose}});}}catch(Exception ex){Warnings.Add(target.Caption+": "+ex.Message);}}return result;}
+ public List<LineItem> ExtractProjectTranslations(string file){var result=new List<LineItem>();foreach(var translation in Game.Translations){if(file!=null&&!string.Equals(file,translation.FileName,StringComparison.OrdinalIgnoreCase))continue;try{if(translation.Modified)throw new IOException("Save pending translation changes in AGS before scanning.");var rows=ReadTranslation(Path.Combine(Root,translation.FileName),translation.Encoding??((Get(Game,"TextEncoding") as Encoding)??Source.StrictEncoding("windows-1252")));if(rows.Count>0){var target=rows[0].Target;var read=target.Read;var write=target.Write;target.Read=()=>{if(translation.Modified)throw new IOException("Translation changed in AGS. Save and rescan before correcting it.");return read();};target.Write=text=>{write(text);translation.LoadData();};}result.AddRange(rows);}catch(Exception ex){Warnings.Add(translation.FileName+": "+ex.Message);}}return result;}
+ public List<LineItem> ExtractTranslation(string path){Warnings.Clear();return ReadTranslation(path,(Get(Game,"TextEncoding") as Encoding)??Source.StrictEncoding("windows-1252"));}
+ public static List<LineItem> ReadTranslation(string path,Encoding fallback){
+  path=Path.GetFullPath(path);if(!path.EndsWith(".trs",StringComparison.OrdinalIgnoreCase))throw new IOException("Choose an editable AGS translation source (.trs).");
+  string header=Encoding.ASCII.GetString(System.IO.File.ReadAllBytes(path));
+  if(Regex.IsMatch(header,@"(?im)^//#Encoding\s*=\s*UTF-8\s*$"))fallback=new UTF8Encoding(false,true);
+  fallback=Encoding.GetEncoding(fallback.CodePage,EncoderFallback.ExceptionFallback,DecoderFallback.ExceptionFallback);var source=new Source(path,false,fallback);var target=new TextTarget{Key="translation:"+path,Caption=Path.GetFileName(path),File=path,Category="Translations",Script=true,Translation=true,Snapshot=source.Text};
+  target.Read=()=>new Source(path,false,fallback).Text;target.Write=text=>Project.Atomic(path,source.Encode(text));
+  target.Navigate=line=>System.Diagnostics.Process.Start("notepad.exe","\""+path+"\"");
+  var result=new List<LineItem>();int index=0;
+  foreach(Match m in Regex.Matches(source.Text,@"[^\r\n]*(?:\r\n|\n|\r|$)")){if(m.Length==0)continue;string text=m.Value.TrimEnd('\r','\n');if(text.StartsWith("//"))continue;
+   if(index%2==1&&Regex.IsMatch(text,@"\p{L}"))result.Add(new LineItem{Target=target,Ordinal=index/2,Original=text,Entry=new Entry{Text=text,File=path,Source=source,Category="Translations",Location="line "+Project.Line(source.Text,m.Index),Kind="plain",Start=m.Index,Length=text.Length,Prose=true}});index++;
+  }if(index%2!=0)throw new IOException("Translation file has an unmatched original line. Each original must have a translation line (which may be blank).");return result;
+ }
+ public List<LineItem> Extract(){Warnings.Clear();var result=new List<LineItem>();foreach(var target in Targets(true)){try{string text=target.Snapshot??target.Read();target.Snapshot=text;if(target.Script){var source=new Source(Path.Combine(Root,target.File),text);var p=new Project{Root=Root};p.ExtractScript(source,text,0,target.Dialog);int ordinal=0;foreach(var entry in p.Entries)result.Add(new LineItem{Target=target,Entry=entry,Ordinal=ordinal++,Original=entry.Text});}else if(Regex.IsMatch(text,@"\p{L}")){result.Add(new LineItem{Target=target,Original=text,Entry=new Entry{Text=text,File=target.File,Category=target.Category,Location="property",Kind="property",Start=0,Length=text.Length,Prose=target.Prose}});}}catch(Exception ex){Warnings.Add(target.Caption+": "+ex.Message);}}return result;}
 }
 }
+
+
+
 

@@ -1,0 +1,7 @@
+{
+  "JavaUrl": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1%2B1/OpenJDK17U-jre_x64_windows_hotspot_17.0.20.1_1.zip",
+  "LanguageToolUrl": "https://languagetool.org/download/snapshots/LanguageTool-20261012-snapshot.zip",
+  "Retrieved": "2026-10-12",
+  "JavaSHA256": "bc21a93923103cdaac93ee337b0ae4365e739fde36df823dd456bc67c8a9d352",
+  "LanguageToolSHA256": "E8D64FA6300E6BB9EA23FF0EE3BE7712CC02A6575B14E576D976EEED02580772"
+}

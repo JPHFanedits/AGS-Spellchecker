@@ -1,0 +1,7 @@
+AGS Spellchecker
+
+Install offline spelling, grammar and punctuation checking for Adventure Game Studio.
+
+Setup includes the plugin and its offline checking engine. No account or separate Java installation is needed.
+
+Please close AGS before continuing.

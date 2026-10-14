@@ -1,0 +1,12 @@
+THIRD-PARTY COMPONENTS
+
+LanguageTool 6.9-SNAPSHOT (download pinned by SHA-256 in DEPENDENCIES.json)
+https://github.com/languagetool-org/languagetool
+https://languagetool.org/download/snapshots/
+The distribution's COPYING.txt, README.md, third-party-licenses and resource notices are preserved under Runtime/LanguageTool. The core is LGPL-2.1-or-later; individual resources and dependencies have their own licenses. The Java libraries remain separate, replaceable files.
+
+Eclipse Temurin OpenJDK 17 JRE
+https://adoptium.net/
+Exact archive URL and verified SHA-256 are in DEPENDENCIES.json. Copyright, license, source and third-party notices are preserved under Runtime/Java/legal and Runtime/Java/NOTICE. The runtime is private to this application and does not modify system Java.
+
+AGS SDK assemblies are referenced during compilation and are not redistributed.
